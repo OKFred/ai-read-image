@@ -1,0 +1,15 @@
+# 忽略指定文件
+abc.json
+.env
+nohup.out
+/dist
+
+# 忽略指定文件夹
+log_zip/
+
+public/cat/resources/
+public/query/emails.json
+attached/
+ssl/
+node_modules/
+package-lock.json

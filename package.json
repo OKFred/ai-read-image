@@ -1,0 +1,16 @@
+{
+    "name": "ai-read-image",
+    "version": "1.0.0",
+    "scripts": {
+        "build": "npx tsgo",
+        "start": "node index.ts"
+    },
+    "dependencies": {
+        "@typescript/native-preview": "7.0.0-dev.20250704.1",
+        "dotenv": "^17.0.1",
+        "openai": "^5.8.2"
+    },
+    "devDependencies": {
+        "@types/node": "^24.0.10"
+    }
+}
