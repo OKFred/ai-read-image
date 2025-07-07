@@ -51,7 +51,9 @@ async function main() {
     });
 
     // 提取响应中的内容
-    const content = response.choices[0].message.content;
+  const content = response.choices[0].message.content;
+  console.log('输入token数:', response.usage.prompt_tokens);
+  console.log('输出token数:', response.usage.completion_tokens);
 
     // 从内容中提取 JSON（去除 markdown 代码块标记）
     const jsonMatch = content.match(/```json\n([\s\S]*?)\n```/);
