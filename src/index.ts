@@ -27,8 +27,8 @@ function localImageToBase64(filePath: string): string {
 async function main() {
     const useOnlineImage = process.env.IMAGE_URL ? true : false; // 检查是否使用在线图片
     let imagePathToUse = useOnlineImage
-        ? process.env.IMAGE_URL
-        : localImageToBase64(process.env.IMAGE_PATH); // 如果使用在线图片，则使用环境变量中的 URL，否则使用本地图片路径
+        ? await (await fetch(process.env.IMAGE_URL)).text() // 如果使用在线图片，则获取其内容
+        : localImageToBase64(process.env.IMAGE_PATH); // F否则使用本地图片路径
     const response = await openai.chat.completions.create({
         model: "qwen2.5-vl-32b-instruct", // 可按需更换。模型列表：https://help.aliyun.com/zh/model-studio/getting-started/models
         messages: [
