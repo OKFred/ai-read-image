@@ -1,6 +1,5 @@
 import OpenAI from "openai";
 import * as dotEnv from "dotenv";
-import fs from "fs";
 dotEnv.config();
 
 const openai = new OpenAI({
@@ -9,28 +8,24 @@ const openai = new OpenAI({
     baseURL: "https://dashscope.aliyuncs.com/compatible-mode/v1",
 });
 
-function localImageToBase64(filePath: string): string {
-    if (!fs.existsSync(filePath)) {
-        throw new Error(`文件不存在: ${filePath}`);
-    }
-    const fileContent = fs.readFileSync(filePath);
-    const fileExtension = filePath.split(".").pop()?.toLowerCase();
-    let type = "image/jpeg"; // 默认类型为 JPEG
-    if (fileExtension === "png") {
-        type = "image/png";
-    } else if (fileExtension === "jpg" || fileExtension === "jpeg") {
-        type = "image/jpeg";
-    }
-    return `data:${type};base64,${fileContent.toString("base64")}`;
-}
-
 async function main() {
-    const useOnlineImage = process.env.IMAGE_URL ? true : false; // 检查是否使用在线图片
-    let imagePathToUse = useOnlineImage
-        ? await (await fetch(process.env.IMAGE_URL)).text() // 如果使用在线图片，则获取其内容
-        : localImageToBase64(process.env.IMAGE_PATH); // F否则使用本地图片路径
+    console.log("开始处理图片...");
+    let imagePath = "";
+    if (process.env.IMAGE_URL) {
+        console.log("使用网络图片:", process.env.IMAGE_URL);
+        const res = await fetch(process.env.IMAGE_URL);
+        console.log({ status: res.status });
+        const arrayBuffer = await res.arrayBuffer();
+        const type = res.headers.get("content-type") || "image/png";
+        console.log("图片类型:", type);
+        const fileContent = Buffer.from(arrayBuffer);
+        imagePath = `data:${type};base64,${fileContent.toString("base64")}`;
+    } else {
+        imagePath = process.env.IMAGE_PATH || "";
+        console.log("使用本地图片:", process.env.IMAGE_PATH);
+    }
     const response = await openai.chat.completions.create({
-        model: "qwen2.5-vl-32b-instruct", // 可按需更换。模型列表：https://help.aliyun.com/zh/model-studio/getting-started/models
+        model: "qwen2.5-vl-72b-instruct", // 可按需更换。模型列表：https://help.aliyun.com/zh/model-studio/getting-started/models
         messages: [
             {
                 role: "user",
@@ -38,12 +33,12 @@ async function main() {
                     {
                         type: "image_url",
                         image_url: {
-                            url: imagePathToUse, // 使用在线图片或本地图片的 Base64 编码
+                            url: imagePath, // 使用在线图片或本地图片的 Base64 编码
                         },
                     },
                     {
                         type: "text",
-                        text: "提取里面的信息，不需要任何空格，区分大小写，以json格式返回。{result: string}",
+                        text: "提取里面的信息，不需要任何空格，区分大小写，仅包含字母或数字，以json格式返回。{result: string}",
                     },
                 ],
             },
@@ -51,9 +46,9 @@ async function main() {
     });
 
     // 提取响应中的内容
-  const content = response.choices[0].message.content;
-  console.log('输入token数:', response.usage.prompt_tokens);
-  console.log('输出token数:', response.usage.completion_tokens);
+    const content = response.choices[0].message.content;
+    console.log("输入token数:", response.usage.prompt_tokens);
+    console.log("输出token数:", response.usage.completion_tokens);
 
     // 从内容中提取 JSON（去除 markdown 代码块标记）
     const jsonMatch = content.match(/```json\n([\s\S]*?)\n```/);
