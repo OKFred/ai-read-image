@@ -2,6 +2,11 @@ import OpenAI from "openai";
 import * as dotEnv from "dotenv";
 dotEnv.config();
 
+if (!process.env.OPENAI_KEY) {
+    console.error("请先在环境变量.env中配置 OPENAI_KEY。参考文件： .env.example");
+    process.exit(1);
+}
+
 const openai = new OpenAI({
     // 若没有配置环境变量，请用百炼API Key将下行替换为：apiKey: "sk-xxx",
     apiKey: process.env.OPENAI_KEY,
